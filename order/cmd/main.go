@@ -10,12 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"google.golang.org/grpc"
+	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 
-	orderHandler "github.com/Production-Ready_Microservices_Architecture/order/pkg/handler"
-	inventoryv1 "github.com/Production-Ready_Microservices_Architecture/shared/proto/inventory/v1"
-	paymentv1 "github.com/Production-Ready_Microservices_Architecture/shared/proto/payment/v1"
+	orderHandler "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/pkg/handler"
+	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/proto/inventory/v1"
+	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/proto/payment/v1"
 )
 
 const (
@@ -24,21 +25,40 @@ const (
 )
 
 func main() {
+
+	//lis, err := net.Listen("tcp", "50050")
 	// TODO: Настроить gRPC клиент с параметрами keepalive
 	// Подумайте, какие параметры стоит задать для gRPC клиента
 	// См. examples/week_1/GRPC_CONNECTIONS.md
 
 	// Создать gRPC соединение с InventoryService
 	inventoryConn, err := grpc.NewClient(inventoryServiceAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                10 * time.Second,
+			Timeout:             3 * time.Second,
+			PermitWithoutStream: true,
+		}),
+	)
 	if err != nil {
 		slog.Error("не удалось подключиться к InventoryService", "error", err)
 		os.Exit(1)
 	}
 	defer inventoryConn.Close()
 
-	// TODO: Создать gRPC клиент PaymentService
-
+	paymentConn, err := grpc.NewClient(paymentServiceAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                10 * time.Second,
+			Timeout:             3 * time.Second,
+			PermitWithoutStream: true,
+		}),
+	)
+	if err != nil {
+		slog.Error("не удалось подключиться к PaymentService", "error", err)
+		os.Exit(1)
+	}
+	defer paymentConn.Close()
 	// Создаём хранилище и обработчик
 	store := orderHandler.NewOrderStore()
 	h := orderHandler.NewHandler(

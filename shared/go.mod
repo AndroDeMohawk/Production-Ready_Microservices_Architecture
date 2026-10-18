@@ -1,5 +1,5 @@
 // TODO: Поменяй имя модуля github.com/student на своё и обнови все импорты
-module github.com/Production-Ready_Microservices_Architecture/shared
+module github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared
 
 go 1.26.0
 
