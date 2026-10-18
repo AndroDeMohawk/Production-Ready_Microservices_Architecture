@@ -32,12 +32,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	inventoryService "github.com/student/inventory/pkg/service"
-	orderHandler "github.com/student/order/pkg/handler"
-	"github.com/student/order/tests/testutil"
-	paymentService "github.com/student/payment/pkg/service"
-	inventoryv1 "github.com/student/shared/pkg/proto/inventory/v1"
-	paymentv1 "github.com/student/shared/pkg/proto/payment/v1"
+	inventoryService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/pkg/service"
+	orderHandler "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/pkg/handler"
+	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/tests/testutil"
+	paymentService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/pkg/service"
+	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
+	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1"
 )
 
 // Предзагруженные UUID и цены деталей (из inventory/cmd/main.go)
