@@ -1,0 +1,282 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "google/api/http.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "InventoryService",
+      "description": "InventoryService управляет каталогом деталей для космических кораблей"
+    },
+    {
+      "name": "PaymentService",
+      "description": "PaymentService обрабатывает оплату заказов"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/inventory/part/{uuid}": {
+      "get": {
+        "summary": "GetPart возвращает деталь по UUID",
+        "operationId": "InventoryService_GetPart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPartResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uuid",
+            "description": "UUID детали",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "InventoryService"
+        ]
+      }
+    },
+    "/api/v1/inventory/parts": {
+      "get": {
+        "summary": "ListParts возвращает список деталей корабля",
+        "operationId": "InventoryService_ListParts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPartsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "part_type",
+            "description": "Тип части корабля (enum)\n\n - PART_TYPE_UNSPECIFIED: Не указан\n - PART_TYPE_HULL: Корпус корабля\n - PART_TYPE_ENGINE: Двигатель\n - PART_TYPE_SHIELD: Защитный щит\n - PART_TYPE_WEAPON: Вооружение",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "PART_TYPE_UNSPECIFIED",
+              "PART_TYPE_HULL",
+              "PART_TYPE_ENGINE",
+              "PART_TYPE_SHIELD",
+              "PART_TYPE_WEAPON"
+            ],
+            "default": "PART_TYPE_UNSPECIFIED"
+          },
+          {
+            "name": "uuids",
+            "description": "Список UUID деталей корабля",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "InventoryService"
+        ]
+      }
+    },
+    "/api/v1/payment/order/{order_uuid}": {
+      "post": {
+        "summary": "PayOrder обрабатывает оплату заказа",
+        "operationId": "PaymentService_PayOrder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PayOrderResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "order_uuid",
+            "description": "UUID заказа",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PaymentServicePayOrderBody"
+            }
+          }
+        ],
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PaymentServicePayOrderBody": {
+      "type": "object",
+      "properties": {
+        "payment_method": {
+          "$ref": "#/definitions/v1PaymentMethod",
+          "title": "Метод оплаты заказа"
+        }
+      },
+      "title": "Запрос на оплату заказа"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1GetPartResponse": {
+      "type": "object",
+      "properties": {
+        "part": {
+          "$ref": "#/definitions/v1Part",
+          "title": "Информация о детали"
+        }
+      }
+    },
+    "v1ListPartsResponse": {
+      "type": "object",
+      "properties": {
+        "parts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Part"
+          },
+          "title": "Список деталей корабля"
+        }
+      }
+    },
+    "v1Part": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "title": "Уникальный идентификатор детали"
+        },
+        "name": {
+          "type": "string",
+          "title": "Название детали"
+        },
+        "description": {
+          "type": "string",
+          "title": "Описание детали"
+        },
+        "price": {
+          "type": "string",
+          "format": "int64",
+          "title": "Цена в копейках (5000₽ = 500000)"
+        },
+        "part_type": {
+          "$ref": "#/definitions/v1PartType",
+          "title": "Тип детали (enum)"
+        },
+        "stock_quantity": {
+          "type": "string",
+          "format": "int64",
+          "title": "Количество на складе"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Дата создания"
+        }
+      },
+      "title": "Part представляет деталь космического корабля"
+    },
+    "v1PartType": {
+      "type": "string",
+      "enum": [
+        "PART_TYPE_UNSPECIFIED",
+        "PART_TYPE_HULL",
+        "PART_TYPE_ENGINE",
+        "PART_TYPE_SHIELD",
+        "PART_TYPE_WEAPON"
+      ],
+      "default": "PART_TYPE_UNSPECIFIED",
+      "description": "- PART_TYPE_UNSPECIFIED: Не указан\n - PART_TYPE_HULL: Корпус корабля\n - PART_TYPE_ENGINE: Двигатель\n - PART_TYPE_SHIELD: Защитный щит\n - PART_TYPE_WEAPON: Вооружение",
+      "title": "Тип детали"
+    },
+    "v1PayOrderResponse": {
+      "type": "object",
+      "properties": {
+        "transaction_uuid": {
+          "type": "string",
+          "title": "UUID транзакции оплаты"
+        }
+      }
+    },
+    "v1PaymentMethod": {
+      "type": "string",
+      "enum": [
+        "PAYMENT_METHOD_UNSPECIFIED",
+        "PAYMENT_METHOD_CARD",
+        "PAYMENT_METHOD_SBP",
+        "PAYMENT_METHOD_CREDIT_CARD",
+        "PAYMENT_METHOD_INVESTOR_MONEY"
+      ],
+      "default": "PAYMENT_METHOD_UNSPECIFIED",
+      "description": "- PAYMENT_METHOD_UNSPECIFIED: Не указан\n - PAYMENT_METHOD_CARD: Банковская карта\n - PAYMENT_METHOD_SBP: Система быстрых платежей\n - PAYMENT_METHOD_CREDIT_CARD: Кредитная карта\n - PAYMENT_METHOD_INVESTOR_MONEY: Деньги инвестора",
+      "title": "Способ оплаты"
+    }
+  }
+}
