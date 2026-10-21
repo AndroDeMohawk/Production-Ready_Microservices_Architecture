@@ -4,10 +4,11 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	paymentv1 "github.com/student/shared/pkg/proto/payment/v1"
+	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1"
 )
 
 // server реализует gRPC сервис оплаты
@@ -25,17 +26,24 @@ func (s *server) PayOrder(
 	ctx context.Context,
 	req *paymentv1.PayOrderRequest,
 ) (*paymentv1.PayOrderResponse, error) {
-	// TODO: Реализовать метод
-	// 1. Проверить, что order_uuid не пустой → INVALID_ARGUMENT
-	// 2. Проверить, что payment_method != UNSPECIFIED → INVALID_ARGUMENT
-	// 3. Проверить формат UUID → INVALID_ARGUMENT
-	// 4. Сгенерировать transaction_uuid (UUID v4)
-	// 5. Вывести в лог: "оплата прошла успешно, order_uuid: X, transaction_uuid: Y"
-	// 6. Вернуть transaction_uuid
-
-	slog.Info("оплата прошла успешно",
-		"order_uuid", req.GetOrderUuid(),
+	id := req.GetOrderUuid()
+	if id == "" {
+		return nil, status.Error(codes.InvalidArgument, "order uuid required")
+	}
+	if req.GetPaymentMethod().String() == "UNSPECIFIED" {
+		return nil, status.Error(codes.InvalidArgument, "unspecified payment method")
+	}
+	idStr, err := uuid.Parse(id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid uuid")
+	}
+	transactionId := uuid.New()
+	slog.Info("Оплата прошла успешно",
+		"order_uuid: ", idStr,
+		"transaction_id: ", transactionId,
 	)
+	return &paymentv1.PayOrderResponse{
+		TransactionUuid: transactionId.String(),
+	}, nil
 
-	return nil, status.Error(codes.Unimplemented, "метод PayOrder не реализован")
 }
