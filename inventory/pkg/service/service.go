@@ -1,14 +1,16 @@
 package service
 
 import (
+	"cmp"
 	"context"
+	"slices"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	inventoryv1 "github.com/student/shared/pkg/proto/inventory/v1"
+	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
 )
 
 // Part представляет деталь космического корабля
@@ -106,21 +108,33 @@ func (s *server) GetPart(
 	ctx context.Context,
 	req *inventoryv1.GetPartRequest,
 ) (*inventoryv1.GetPartResponse, error) {
-	// TODO: Реализовать метод
-	// 1. Проверить, что uuid не пустой → INVALID_ARGUMENT
-	// 2. Валидировать формат UUID → INVALID_ARGUMENT
-	// 3. Найти деталь в map
-	// 4. Если не найдена → NOT_FOUND
-	// 5. Преобразовать в inventoryv1.Part
-	// 6. Вернуть деталь
+	id := req.GetUuid()
+	if id == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "uuid не может быть пустым")
+	}
 
-	// TODO: Валидация формата UUID v4
-	// Можно использовать github.com/google/uuid:
-	// if _, err := uuid.Parse(req.GetUuid()); err != nil {
-	//     return nil, status.Errorf(codes.InvalidArgument, "неверный формат uuid: %s", req.GetUuid())
-	// }
+	idParsed, err := uuid.Parse(id)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "uuid некорректный")
+	}
 
-	return nil, status.Error(codes.Unimplemented, "метод GetPart не реализован")
+	part, exists := s.parts[idParsed]
+	if !exists {
+		return nil, status.Errorf(codes.NotFound, "деталь не найдена")
+	}
+	finalPart := &inventoryv1.Part{
+		Uuid:          id,
+		Name:          part.Name,
+		Description:   part.Description,
+		Price:         part.Price,
+		StockQuantity: part.StockQuantity,
+		CreatedAt:     part.CreatedAt,
+		PartType:      part.PartType,
+	}
+	return &inventoryv1.GetPartResponse{
+		Part: finalPart,
+	}, nil
+
 }
 
 // ListParts возвращает список деталей с опциональной фильтрацией по типу
@@ -128,13 +142,93 @@ func (s *server) ListParts(
 	ctx context.Context,
 	req *inventoryv1.ListPartsRequest,
 ) (*inventoryv1.ListPartsResponse, error) {
-	// TODO: Реализовать метод
-	// 1. Если передан список uuids → найти детали по UUID (сохраняя порядок запроса)
-	//    - Проверить формат каждого UUID → INVALID_ARGUMENT
-	//    - Если хоть один UUID не найден → NOT_FOUND
-	// 2. Иначе если part_type == UNSPECIFIED → вернуть все детали
-	// 3. Иначе → фильтровать по типу
-	// 4. Отсортировать по имени (только для фильтрации по типу, не для uuids)
 
-	return nil, status.Error(codes.Unimplemented, "метод ListParts не реализован")
+	uuids := req.GetUuids()
+
+	// 1. Если передан список uuids → найти детали по UUID (сохраняя порядок запроса)
+	if len(uuids) > 0 {
+		parts := make([]*inventoryv1.Part, 0, len(uuids))
+
+		for _, idStr := range uuids {
+			idStr := uuid.MustParse(idStr)
+			// Ищем деталь в нашей базе данных s.parts
+			val, exists := s.parts[idStr] // Предполагается, что s.parts это map[string]ВашаСтруктура
+			if !exists {
+				// Если хоть один UUID не найден → NOT_FOUND
+				return nil, status.Error(codes.NotFound, "part not found")
+			}
+
+			// Маппим в protobuf-структуру (порядок сохраняется за счет цикла по запросу)
+			parts = append(parts, &inventoryv1.Part{
+				Uuid:          val.UUID,
+				Name:          val.Name,
+				Description:   val.Description,
+				PartType:      val.PartType,
+				Price:         val.Price,
+				StockQuantity: val.StockQuantity,
+				CreatedAt:     val.CreatedAt,
+			})
+		}
+
+		// Для UUID сортировка НЕ нужна (по пункту 4)
+		return &inventoryv1.ListPartsResponse{Parts: parts}, nil
+	}
+
+	// 2. Иначе если part_type == UNSPECIFIED (или 0) → вернуть все детали
+	// В protobuf enum по умолчанию равен 0 (обычно это _UNSPECIFIED)
+	targetType := req.GetPartType()
+	if targetType == inventoryv1.PartType_PART_TYPE_UNSPECIFIED { // Замените на точное имя вашего enum по умолчанию
+
+		parts := s.makeResponseSlice(SortByName, targetType, true)
+		return parts, nil
+	}
+
+	// 3 & 4. Иначе → фильтровать по типу и отсортировать ПО ИМЕНИ
+	parts := s.makeResponseSlice(SortByName, targetType, false)
+	return parts, nil
+}
+
+type SortBy string
+
+const (
+	SortByPartType SortBy = "type"
+	SortByName     SortBy = "name"
+)
+
+// Добавим в метод параметры фильтрации, чтобы делать всё за один проход
+func (s *server) makeResponseSlice(sortBy SortBy, filterType inventoryv1.PartType, returnAll bool) *inventoryv1.ListPartsResponse {
+	parts := make([]*inventoryv1.Part, 0, len(s.parts))
+
+	for _, val := range s.parts {
+		// Если не нужно возвращать всё и тип не совпадает — пропускаем
+		if !returnAll && val.PartType != filterType {
+			continue
+		}
+
+		parts = append(parts, &inventoryv1.Part{
+			Uuid:          val.UUID,
+			Name:          val.Name,
+			Description:   val.Description,
+			PartType:      val.PartType,
+			Price:         val.Price,
+			StockQuantity: val.StockQuantity,
+			CreatedAt:     val.CreatedAt,
+		})
+	}
+
+	// Сортировка
+	slices.SortFunc(parts, func(a, b *inventoryv1.Part) int {
+		switch sortBy {
+		case SortByName:
+			return cmp.Compare(a.Name, b.Name)
+		case SortByPartType:
+			fallthrough
+		default:
+			return cmp.Compare(a.PartType, b.PartType)
+		}
+	})
+
+	return &inventoryv1.ListPartsResponse{
+		Parts: parts,
+	}
 }
