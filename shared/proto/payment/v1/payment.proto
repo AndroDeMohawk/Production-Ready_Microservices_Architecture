@@ -2,20 +2,32 @@ syntax = "proto3";
 
 package payment.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1;paymentv1";
 
 // PaymentService обрабатывает оплату заказов
 service PaymentService {
   // PayOrder обрабатывает оплату заказа
-  rpc PayOrder(PayOrderRequest) returns (PayOrderResponse);
+  rpc PayOrder(PayOrderRequest) returns (PayOrderResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/payment/order/{order_uuid}"
+      body: "*"
+    };
+  }
 }
 
 // Способ оплаты
 enum PaymentMethod {
+  // Не указан
   PAYMENT_METHOD_UNSPECIFIED = 0;
+  // Банковская карта
   PAYMENT_METHOD_CARD = 1;
+  // Система быстрых платежей
   PAYMENT_METHOD_SBP = 2;
+  // Кредитная карта
   PAYMENT_METHOD_CREDIT_CARD = 3;
+  // Деньги инвестора
   PAYMENT_METHOD_INVESTOR_MONEY = 4;
 }
 
@@ -23,9 +35,11 @@ enum PaymentMethod {
 message PayOrderRequest {
   // UUID заказа
   string order_uuid = 1;
+  // Метод оплаты заказа
   PaymentMethod payment_method = 2;
 }
 
-message PayOrderResponse{
+message PayOrderResponse {
+  // UUID транзакции оплаты
   string transaction_uuid = 1;
 }

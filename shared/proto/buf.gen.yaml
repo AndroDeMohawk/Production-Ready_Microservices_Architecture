@@ -1,6 +1,26 @@
 version: v2
+
+#clean: true
+
 plugins:
-  - remote: buf.build/protocolbuffers/go:v1.34.2
-    out: ../../pkg
-  - remote: buf.build/grpc/go:v1.5.1
-    out: ../../pkg
+  - local: ../../bin/protoc-gen-go
+    out: ../pkg/proto
+    opt:
+      - paths=source_relative
+  - local: ../../bin/protoc-gen-go-grpc
+    out: ../pkg/proto
+    opt:
+      - paths=source_relative
+  - local: ../../bin/protoc-gen-grpc-gateway
+    out: ../pkg/proto
+    opt:
+      - paths=source_relative
+  - local: ../../bin/protoc-gen-openapiv2
+    out: ../static/generated
+    strategy: all
+    opt:
+      - allow_merge=true
+      - generate_unbound_methods=true
+      - merge_file_name=swagger
+      - json_names_for_fields=false
+

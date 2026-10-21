@@ -1,4 +1,6 @@
 version: v2
+deps:
+  - buf.build/googleapis/googleapis
 lint:
   use:
     - STANDARD
@@ -9,3 +11,6 @@ lint:
     - COMMENT_ONEOF
     - COMMENT_RPC
     - COMMENT_SERVICE
+  ignore:
+    - google
+    - buf
