@@ -42,9 +42,14 @@ func main() {
 	paymentURL, _ := url.Parse("http://localhost:40042")
 	paymentProxy := httputil.NewSingleHostReverseProxy(paymentURL)
 	mux.Handle("/api/v1/payment/", paymentProxy)
+
+	orderURL, _ := url.Parse("http://localhost:8080")
+	orderProxy := httputil.NewSingleHostReverseProxy(orderURL)
+	mux.Handle("/api/v1/orders/", orderProxy)
+
 	if err := http.ListenAndServe(port, mux); err != nil {
 		slog.Error("Ошибка запуска сервера документации", "error", err)
 		os.Exit(1)
 	}
-	
+
 }

@@ -4,7 +4,7 @@ package payment.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1;paymentv1";
+option go_package = "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1;paymentv1";
 
 // PaymentService обрабатывает оплату заказов
 service PaymentService {
