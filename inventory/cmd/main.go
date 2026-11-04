@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -12,15 +11,16 @@ import (
 	"syscall"
 	"time"
 
+	inventoryApi "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/api/inventory/v1"
+	inventoryRepo "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/repository/part"
+	inventoryService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/service/part"
+	interceptor "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/interceptors"
+	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
-
-	inventoryService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/pkg/service"
-	interceptor "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/interceptors"
-	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
 )
 
 const (
@@ -58,7 +58,11 @@ func main() {
 			interceptor.Recover(),
 		),
 	)
-	inventoryv1.RegisterInventoryServiceServer(grpcServer, inventoryService.NewServer())
+	repo := inventoryRepo.NewPartStore()
+	service := inventoryService.NewService(repo)
+	api := inventoryApi.NewApi(service)
+
+	inventoryv1.RegisterInventoryServiceServer(grpcServer, api)
 	reflection.Register(grpcServer)
 
 	slog.Info("запуск InventoryService", "адрес", grpcAddress)
@@ -68,7 +72,7 @@ func main() {
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
-			slog.Error("ошибка запуска сервера", fmt.Errorf(err.Error()))
+			slog.Error("ошибка запуска сервера", "error", err)
 			os.Exit(1)
 		}
 	}()
