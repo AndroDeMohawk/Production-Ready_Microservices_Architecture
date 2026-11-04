@@ -11,6 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	paymentApi "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/internal/api/transaction/v1"
+	paymentRepo "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/internal/repository/transaction"
+	paymentService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/internal/service/transaction"
 	interceptor "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/interceptors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -18,7 +21,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
-	paymentService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/pkg/service"
 	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1"
 )
 
@@ -56,8 +58,10 @@ func main() {
 			interceptor.Recover(),
 		),
 	)
-
-	paymentv1.RegisterPaymentServiceServer(grpcServer, paymentService.NewServer())
+	repo := paymentRepo.New()
+	service := paymentService.New(repo)
+	api := paymentApi.NewApi(service)
+	paymentv1.RegisterPaymentServiceServer(grpcServer, api)
 	reflection.Register(grpcServer)
 
 	slog.Info("запуск PaymentService", "адрес", grpcAddress)
