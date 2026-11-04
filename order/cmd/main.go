@@ -10,13 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/pkg/app"
+	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
+	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
-
-	orderHandler "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/pkg/handler"
-	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
-	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1"
 )
 
 const (
@@ -55,15 +54,17 @@ func main() {
 		os.Exit(1)
 	}
 	defer paymentConn.Close()
-	// Создаём хранилище и обработчик
-	store := orderHandler.NewOrderStore()
-	h := orderHandler.NewHandler(
+	// Инициализации приложения
+	app, err := app.NewApp(
 		inventoryv1.NewInventoryServiceClient(inventoryConn),
 		paymentv1.NewPaymentServiceClient(paymentConn),
-		store,
 	)
+	if err != nil {
+		slog.Info("внутрення ошибка сервера: ", "error:", err)
+		os.Exit(1)
+	}
 
-	orderServer, err := orderHandler.SetupServer(h)
+	h := app.HTTPHandler()
 	if err != nil {
 		slog.Error("ошибка создания сервера OpenAPI", "error", err)
 		os.Exit(1)
@@ -71,7 +72,7 @@ func main() {
 
 	httpServer := http.Server{
 		Addr:              ":8080",
-		Handler:           orderServer,
+		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       120 * time.Second,
 		WriteTimeout:      60 * time.Second,
