@@ -23,6 +23,9 @@ func (a *api) ListParts(ctx context.Context, req *inventoryv1.ListPartsRequest) 
 		protoParts = append(protoParts, converter.ModelToProto(part))
 	}
 	if err != nil {
+		if errors.Is(err, errs.ErrParsingUUID) {
+			return nil, status.Errorf(codes.InvalidArgument, "ошибка парсинга uuid")
+		}
 		if errors.Is(err, errs.ErrPartsNotFound) {
 			return &inventoryv1.ListPartsResponse{
 				Parts: protoParts,

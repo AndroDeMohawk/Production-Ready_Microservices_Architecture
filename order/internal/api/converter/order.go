@@ -29,31 +29,25 @@ func CreateOrderRequestToInput(request *orderv1.CreateOrderRequest) input.Create
 func OrderToDTO(o *model.Order) orderv1.OrderDto {
 	dto := orderv1.OrderDto{
 		OrderUUID:       o.OrderUUID,
-		HullUUID:        o.Parts.HullUUID,
-		EngineUUID:      o.Parts.EngineUUID,
+		HullUUID:        o.Parts.Hull.UUID,
+		EngineUUID:      o.Parts.Engine.UUID,
 		TotalPrice:      o.TotalPrice,
 		Status:          orderv1.OrderStatus(o.Status),
 		CreatedAt:       o.CreatedAt,
 		WeaponUUID:      orderv1.OptNilUUID{Set: true, Null: true},
 		ShieldUUID:      orderv1.OptNilUUID{Set: true, Null: true},
 		TransactionUUID: orderv1.OptNilUUID{Set: true, Null: true},
-		PaymentMethod:   orderv1.OptNilPaymentMethod{Set: true, Null: true},
 	}
 
-	if o.Parts.WeaponUUID != nil {
-		dto.WeaponUUID = orderv1.OptNilUUID{Value: *o.Parts.WeaponUUID, Set: true}
+	if o.Parts.Weapon != nil {
+		dto.WeaponUUID = orderv1.OptNilUUID{Value: o.Parts.Weapon.UUID, Set: true}
 	}
-	if o.Parts.ShieldUUID != nil {
-		dto.ShieldUUID = orderv1.OptNilUUID{Value: *o.Parts.ShieldUUID, Set: true}
+	if o.Parts.Shield != nil {
+		dto.ShieldUUID = orderv1.OptNilUUID{Value: o.Parts.Shield.UUID, Set: true}
 	}
 	if o.TransactionUUID != nil {
 		dto.TransactionUUID = orderv1.OptNilUUID{Value: *o.TransactionUUID, Set: true}
 	}
-	if o.PaymentMethod != nil {
-		dto.PaymentMethod = orderv1.OptNilPaymentMethod{
-			Value: orderv1.PaymentMethod(*o.PaymentMethod),
-			Set:   true,
-		}
-	}
+
 	return dto
 }

@@ -14,9 +14,6 @@ var (
 	rn4AllowedHeaders = map[string]string{
 		"POST": "Content-Type",
 	}
-	rn6AllowedHeaders = map[string]string{
-		"POST": "Content-Type",
-	}
 )
 
 func (s *Server) cutPrefix(path string) (string, bool) {
@@ -174,8 +171,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							default:
 								s.notAllowed(w, r, notAllowedParams{
 									allowedMethods: "POST",
-									allowedHeaders: rn6AllowedHeaders,
-									acceptPost:     "application/json",
+									allowedHeaders: nil,
+									acceptPost:     "",
 									acceptPatch:    "",
 								})
 							}

@@ -64,7 +64,7 @@ func (a *clientAdapter) ListParts(ctx context.Context, partType model.PartType, 
 			Name:          part.GetName(),
 			Description:   part.GetDescription(),
 			Price:         part.GetPrice(),
-			PartType:      partType,
+			PartType:      model.PartType(part.GetPartType()),
 			StockQuantity: part.GetStockQuantity(),
 			CreatedAt:     part.GetCreatedAt().AsTime(),
 		}

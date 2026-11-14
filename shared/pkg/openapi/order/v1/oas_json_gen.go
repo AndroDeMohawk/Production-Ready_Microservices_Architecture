@@ -848,55 +848,6 @@ func (s *GetOrderNotFound) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes PaymentMethod as json.
-func (o OptNilPaymentMethod) Encode(e *jx.Encoder) {
-	if !o.Set {
-		return
-	}
-	if o.Null {
-		e.Null()
-		return
-	}
-	e.Str(string(o.Value))
-}
-
-// Decode decodes PaymentMethod from json.
-func (o *OptNilPaymentMethod) Decode(d *jx.Decoder) error {
-	if o == nil {
-		return errors.New("invalid: unable to decode OptNilPaymentMethod to nil")
-	}
-	if d.Next() == jx.Null {
-		if err := d.Null(); err != nil {
-			return err
-		}
-
-		var v PaymentMethod
-		o.Value = v
-		o.Set = true
-		o.Null = true
-		return nil
-	}
-	o.Set = true
-	o.Null = false
-	if err := o.Value.Decode(d); err != nil {
-		return err
-	}
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s OptNilPaymentMethod) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *OptNilPaymentMethod) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
 // Encode encodes uuid.UUID as json.
 func (o OptNilUUID) Encode(e *jx.Encoder) {
 	if !o.Set {
@@ -992,12 +943,6 @@ func (s *OrderDto) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
-		if s.PaymentMethod.Set {
-			e.FieldStart("payment_method")
-			s.PaymentMethod.Encode(e)
-		}
-	}
-	{
 		e.FieldStart("status")
 		s.Status.Encode(e)
 	}
@@ -1007,7 +952,7 @@ func (s *OrderDto) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfOrderDto = [10]string{
+var jsonFieldsNameOfOrderDto = [9]string{
 	0: "order_uuid",
 	1: "hull_uuid",
 	2: "engine_uuid",
@@ -1015,9 +960,8 @@ var jsonFieldsNameOfOrderDto = [10]string{
 	4: "weapon_uuid",
 	5: "total_price",
 	6: "transaction_uuid",
-	7: "payment_method",
-	8: "status",
-	9: "created_at",
+	7: "status",
+	8: "created_at",
 }
 
 // Decode decodes OrderDto from json.
@@ -1107,18 +1051,8 @@ func (s *OrderDto) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"transaction_uuid\"")
 			}
-		case "payment_method":
-			if err := func() error {
-				s.PaymentMethod.Reset()
-				if err := s.PaymentMethod.Decode(d); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"payment_method\"")
-			}
 		case "status":
-			requiredBitSet[1] |= 1 << 0
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				if err := s.Status.Decode(d); err != nil {
 					return err
@@ -1128,7 +1062,7 @@ func (s *OrderDto) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"status\"")
 			}
 		case "created_at":
-			requiredBitSet[1] |= 1 << 1
+			requiredBitSet[1] |= 1 << 0
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -1149,8 +1083,8 @@ func (s *OrderDto) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [2]uint8{
-		0b00100111,
-		0b00000011,
+		0b10100111,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1391,100 +1325,6 @@ func (s *PayOrderNotFound) UnmarshalJSON(data []byte) error {
 }
 
 // Encode implements json.Marshaler.
-func (s *PayOrderRequest) Encode(e *jx.Encoder) {
-	e.ObjStart()
-	s.encodeFields(e)
-	e.ObjEnd()
-}
-
-// encodeFields encodes fields.
-func (s *PayOrderRequest) encodeFields(e *jx.Encoder) {
-	{
-		e.FieldStart("payment_method")
-		s.PaymentMethod.Encode(e)
-	}
-}
-
-var jsonFieldsNameOfPayOrderRequest = [1]string{
-	0: "payment_method",
-}
-
-// Decode decodes PayOrderRequest from json.
-func (s *PayOrderRequest) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode PayOrderRequest to nil")
-	}
-	var requiredBitSet [1]uint8
-
-	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
-		switch string(k) {
-		case "payment_method":
-			requiredBitSet[0] |= 1 << 0
-			if err := func() error {
-				if err := s.PaymentMethod.Decode(d); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"payment_method\"")
-			}
-		default:
-			return d.Skip()
-		}
-		return nil
-	}); err != nil {
-		return errors.Wrap(err, "decode PayOrderRequest")
-	}
-	// Validate required fields.
-	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
-		0b00000001,
-	} {
-		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
-			// Mask only required fields and check equality to mask using XOR.
-			//
-			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
-			// Bits of fields which would be set are actually bits of missed fields.
-			missed := bits.OnesCount8(result)
-			for bitN := 0; bitN < missed; bitN++ {
-				bitIdx := bits.TrailingZeros8(result)
-				fieldIdx := i*8 + bitIdx
-				var name string
-				if fieldIdx < len(jsonFieldsNameOfPayOrderRequest) {
-					name = jsonFieldsNameOfPayOrderRequest[fieldIdx]
-				} else {
-					name = strconv.Itoa(fieldIdx)
-				}
-				failures = append(failures, validate.FieldError{
-					Name:  name,
-					Error: validate.ErrFieldRequired,
-				})
-				// Reset bit.
-				result &^= 1 << bitIdx
-			}
-		}
-	}
-	if len(failures) > 0 {
-		return &validate.Error{Fields: failures}
-	}
-
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s *PayOrderRequest) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *PayOrderRequest) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode implements json.Marshaler.
 func (s *PayOrderResponse) Encode(e *jx.Encoder) {
 	e.ObjStart()
 	s.encodeFields(e)
@@ -1576,50 +1416,6 @@ func (s *PayOrderResponse) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *PayOrderResponse) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes PaymentMethod as json.
-func (s PaymentMethod) Encode(e *jx.Encoder) {
-	e.Str(string(s))
-}
-
-// Decode decodes PaymentMethod from json.
-func (s *PaymentMethod) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode PaymentMethod to nil")
-	}
-	v, err := d.StrBytes()
-	if err != nil {
-		return err
-	}
-	// Try to use constant string.
-	switch PaymentMethod(v) {
-	case PaymentMethodCARD:
-		*s = PaymentMethodCARD
-	case PaymentMethodSBP:
-		*s = PaymentMethodSBP
-	case PaymentMethodCREDITCARD:
-		*s = PaymentMethodCREDITCARD
-	case PaymentMethodINVESTORMONEY:
-		*s = PaymentMethodINVESTORMONEY
-	default:
-		*s = PaymentMethod(v)
-	}
-
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s PaymentMethod) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *PaymentMethod) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }

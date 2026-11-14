@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *orderService) Pay(ctx context.Context, orderID uuid.UUID, method model.PaymentMethod) (*model.Order, error) {
+func (s *orderService) Pay(ctx context.Context, orderID uuid.UUID) (*model.Order, error) {
 	const op = "order.service.pay"
 
 	order, err := s.repository.Get(ctx, orderID)
@@ -28,13 +28,12 @@ func (s *orderService) Pay(ctx context.Context, orderID uuid.UUID, method model.
 	case model.OrderStatusCancelled:
 		return nil, errs.ErrOrderCancelled
 	}
-
-	txUUID, err := s.paymentClient.Pay(ctx, orderID, method)
+	txUUID, err := s.paymentClient.Pay(ctx, orderID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: оплата: %w", op, err)
 	}
 
-	if err := s.repository.Pay(ctx, orderID, txUUID, method); err != nil {
+	if err := s.repository.Pay(ctx, orderID, txUUID); err != nil {
 		return nil, fmt.Errorf("%s: сохранение: %w", op, err)
 	}
 

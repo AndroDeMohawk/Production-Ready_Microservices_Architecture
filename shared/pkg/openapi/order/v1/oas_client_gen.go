@@ -52,7 +52,7 @@ type Invoker interface {
 	// Проводит оплату заказа.
 	//
 	// POST /api/v1/orders/{order_uuid}/pay
-	PayOrder(ctx context.Context, request *PayOrderRequest, params PayOrderParams) (PayOrderRes, error)
+	PayOrder(ctx context.Context, params PayOrderParams) (PayOrderRes, error)
 }
 
 // Client implements OAS client.
@@ -363,12 +363,12 @@ func (c *Client) sendGetOrder(ctx context.Context, params GetOrderParams) (res G
 // Проводит оплату заказа.
 //
 // POST /api/v1/orders/{order_uuid}/pay
-func (c *Client) PayOrder(ctx context.Context, request *PayOrderRequest, params PayOrderParams) (PayOrderRes, error) {
-	res, err := c.sendPayOrder(ctx, request, params)
+func (c *Client) PayOrder(ctx context.Context, params PayOrderParams) (PayOrderRes, error) {
+	res, err := c.sendPayOrder(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendPayOrder(ctx context.Context, request *PayOrderRequest, params PayOrderParams) (res PayOrderRes, err error) {
+func (c *Client) sendPayOrder(ctx context.Context, params PayOrderParams) (res PayOrderRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("payOrder"),
 		semconv.HTTPRequestMethodKey.String("POST"),
@@ -432,9 +432,6 @@ func (c *Client) sendPayOrder(ctx context.Context, request *PayOrderRequest, par
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-	if err := encodePayOrderRequest(request, r); err != nil {
-		return res, errors.Wrap(err, "encode request")
 	}
 
 	stage = "SendRequest"

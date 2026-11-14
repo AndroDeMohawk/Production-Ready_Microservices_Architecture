@@ -552,21 +552,6 @@ func (s *Server) handlePayOrderRequest(args [1]string, argsEscaped bool, w http.
 	}
 
 	var rawBody []byte
-	request, rawBody, close, err := s.decodePayOrderRequest(r)
-	if err != nil {
-		err = &ogenerrors.DecodeRequestError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeRequest", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-	defer func() {
-		if err := close(); err != nil {
-			recordError("CloseRequest", err)
-		}
-	}()
 
 	var response PayOrderRes
 	if m := s.cfg.Middleware; m != nil {
@@ -575,7 +560,7 @@ func (s *Server) handlePayOrderRequest(args [1]string, argsEscaped bool, w http.
 			OperationName:    PayOrderOperation,
 			OperationSummary: "Оплатить заказ",
 			OperationID:      "payOrder",
-			Body:             request,
+			Body:             nil,
 			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
@@ -587,7 +572,7 @@ func (s *Server) handlePayOrderRequest(args [1]string, argsEscaped bool, w http.
 		}
 
 		type (
-			Request  = *PayOrderRequest
+			Request  = struct{}
 			Params   = PayOrderParams
 			Response = PayOrderRes
 		)
@@ -600,12 +585,12 @@ func (s *Server) handlePayOrderRequest(args [1]string, argsEscaped bool, w http.
 			mreq,
 			unpackPayOrderParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.PayOrder(ctx, request, params)
+				response, err = s.h.PayOrder(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.PayOrder(ctx, request, params)
+		response, err = s.h.PayOrder(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)

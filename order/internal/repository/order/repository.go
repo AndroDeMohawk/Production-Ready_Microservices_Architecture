@@ -1,21 +1,18 @@
 package order
 
 import (
-	"sync"
-
-	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/internal/repository/record"
-	"github.com/google/uuid"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// orderStore — хранилище заказов (in-memory)
-type orderStore struct {
-	mu     sync.RWMutex
-	orders map[uuid.UUID]record.Order
+type repository struct {
+	pool   *pgxpool.Pool
+	getter *trmpgx.CtxGetter
 }
 
-// NewOrderStore создаёт новое пустое хранилище заказов
-func NewOrderStore() *orderStore {
-	return &orderStore{
-		orders: make(map[uuid.UUID]record.Order),
+func New(pool *pgxpool.Pool) *repository {
+	return &repository{
+		pool:   pool,
+		getter: trmpgx.DefaultCtxGetter,
 	}
 }

@@ -47,6 +47,6 @@ func (UnimplementedHandler) GetOrder(ctx context.Context, params GetOrderParams)
 // Проводит оплату заказа.
 //
 // POST /api/v1/orders/{order_uuid}/pay
-func (UnimplementedHandler) PayOrder(ctx context.Context, req *PayOrderRequest, params PayOrderParams) (r PayOrderRes, _ error) {
+func (UnimplementedHandler) PayOrder(ctx context.Context, params PayOrderParams) (r PayOrderRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

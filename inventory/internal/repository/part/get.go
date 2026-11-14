@@ -2,22 +2,50 @@ package part
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	errs "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/errors"
 	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/model"
 	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/repository/converter"
+	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/repository/record"
+	"github.com/go-faster/errors"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (p *partStore) Get(ctx context.Context, id uuid.UUID) (*model.Part, error) {
-	order, exist := p.parts[id]
-	if !exist {
-		return nil, errs.ErrPartNotFound
+func (r *repository) Get(ctx context.Context, id uuid.UUID) (*model.Part, error) {
+	querier := r.getter.DefaultTrOrDB(ctx, r.pool)
+	const query = `SELECT uuid,name,description,part_type,price,stock_quantity,created_at,updated_at from parts where uuid = $1`
+	var part record.Part
+	var partType string
+	var createdAt time.Time
+	var updatedAt *time.Time
+	err := querier.QueryRow(ctx, query, id).Scan(
+		&part.UUID,
+		&part.Name,
+		&part.Description,
+		&partType,
+		&part.Price,
+		&part.StockQuantity,
+		&createdAt,
+		&updatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, errs.ErrPartNotFoundInDB) {
+			return nil, errs.ErrPartNotFound
+		}
+		return nil, err
 	}
-	mOrder, err := converter.RecordToModel(&order)
+	part.PartType = record.PartTypeFromString(strings.ToUpper(partType))
+	part.CreatedAt = timestamppb.New(createdAt)
+	if updatedAt != nil {
+		part.UpdatedAt = timestamppb.New(*updatedAt)
+	}
+	mPart, err := converter.RecordToModel(&part)
 	if err != nil {
 		return nil, errs.ErrParsingUUID
 	}
-	return mOrder, nil
+	return mPart, nil
 
 }

@@ -41,9 +41,6 @@ func mapError(err error) (int, string) {
 		errors.Is(err, errs.ErrOrderCancelled),
 		errors.Is(err, errs.ErrOrderAlreadyPaid):
 		return http.StatusConflict, err.Error()
-	case errors.Is(err, errs.ErrInvalidPaymentMethod),
-		errors.Is(err, errs.ErrInvalidUUID):
-		return http.StatusBadRequest, err.Error()
 	default:
 		return http.StatusInternalServerError, err.Error()
 	}

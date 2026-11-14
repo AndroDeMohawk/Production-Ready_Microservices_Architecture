@@ -6,12 +6,6 @@ post:
     - Orders
   parameters:
     - $ref: '../params/order_uuid.yaml'
-  requestBody:
-    required: true
-    content:
-      application/json:
-        schema:
-          $ref: '../components/pay_order_request.yaml'
   responses:
     '200':
       description: Оплата прошла успешно

@@ -1,9 +1,11 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 
 	apiv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/internal/api/order/v1"
 	inventoryClient "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/internal/client/grpc/inventory/v1"
@@ -13,6 +15,10 @@ import (
 	orderv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/openapi/order/v1"
 	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
 	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	manager "github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	ogenmiddleware "github.com/ogen-go/ogen/middleware"
 )
 
@@ -25,12 +31,31 @@ func NewApp(
 	paymentGRPCClient paymentv1.PaymentServiceClient,
 
 ) (*App, error) {
-	repository := orderRepo.NewOrderStore()
+	ctx := context.Background()
+	_ = godotenv.Load("../order.env")
+	DSN := os.Getenv("DB_URI")
+	pool, err := pgxpool.New(ctx, DSN)
+	if err != nil {
+		slog.Error("не удалось создать пул подключений к БД", "error", err)
+		os.Exit(1)
+	}
+	err = pool.Ping(ctx)
+	if err != nil {
+		slog.Error("проверка соединения с БД", "error", err)
+		os.Exit(1)
+	}
 
+	slog.Info("подключение к PostgreSQL установлено")
+	manager, err := manager.New(trmpgx.NewDefaultFactory(pool))
+	if err != nil {
+		slog.Error("создание transaction manager", "error", err)
+		os.Exit(1)
+	}
+	Repository := orderRepo.New(pool)
 	invClient := inventoryClient.NewClientAdapter(inventoryGRPCClient)
 	paymClient := paymentClient.NewClientAdapter(paymentGRPCClient)
 
-	Service := orderService.NewService(repository, invClient, paymClient)
+	Service := orderService.NewService(Repository, invClient, paymClient, manager)
 
 	apiHandler := apiv1.NewApi(Service)
 	server, err := orderv1.NewServer(

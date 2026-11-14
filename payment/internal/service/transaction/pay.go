@@ -29,7 +29,6 @@ func (s *service) Pay(ctx context.Context, in *input.Pay) (*model.Transaction, e
 	tx = &model.Transaction{
 		TransactionUUID: uuid.New(),
 		OrderUUID:       in.OrderId,
-		Method:          in.Method,
 		Status:          model.TransactionStatusSucceeded,
 		CreatedAt:       now,
 		UpdatedAt:       now,

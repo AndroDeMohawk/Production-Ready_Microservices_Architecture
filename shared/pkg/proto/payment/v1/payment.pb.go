@@ -22,74 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Способ оплаты
-type PaymentMethod int32
-
-const (
-	// Не указан
-	PaymentMethod_PAYMENT_METHOD_UNSPECIFIED PaymentMethod = 0
-	// Банковская карта
-	PaymentMethod_PAYMENT_METHOD_CARD PaymentMethod = 1
-	// Система быстрых платежей
-	PaymentMethod_PAYMENT_METHOD_SBP PaymentMethod = 2
-	// Кредитная карта
-	PaymentMethod_PAYMENT_METHOD_CREDIT_CARD PaymentMethod = 3
-	// Деньги инвестора
-	PaymentMethod_PAYMENT_METHOD_INVESTOR_MONEY PaymentMethod = 4
-)
-
-// Enum value maps for PaymentMethod.
-var (
-	PaymentMethod_name = map[int32]string{
-		0: "PAYMENT_METHOD_UNSPECIFIED",
-		1: "PAYMENT_METHOD_CARD",
-		2: "PAYMENT_METHOD_SBP",
-		3: "PAYMENT_METHOD_CREDIT_CARD",
-		4: "PAYMENT_METHOD_INVESTOR_MONEY",
-	}
-	PaymentMethod_value = map[string]int32{
-		"PAYMENT_METHOD_UNSPECIFIED":    0,
-		"PAYMENT_METHOD_CARD":           1,
-		"PAYMENT_METHOD_SBP":            2,
-		"PAYMENT_METHOD_CREDIT_CARD":    3,
-		"PAYMENT_METHOD_INVESTOR_MONEY": 4,
-	}
-)
-
-func (x PaymentMethod) Enum() *PaymentMethod {
-	p := new(PaymentMethod)
-	*p = x
-	return p
-}
-
-func (x PaymentMethod) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (PaymentMethod) Descriptor() protoreflect.EnumDescriptor {
-	return file_payment_v1_payment_proto_enumTypes[0].Descriptor()
-}
-
-func (PaymentMethod) Type() protoreflect.EnumType {
-	return &file_payment_v1_payment_proto_enumTypes[0]
-}
-
-func (x PaymentMethod) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use PaymentMethod.Descriptor instead.
-func (PaymentMethod) EnumDescriptor() ([]byte, []int) {
-	return file_payment_v1_payment_proto_rawDescGZIP(), []int{0}
-}
-
 // Запрос на оплату заказа
 type PayOrderRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// UUID заказа
-	OrderUuid string `protobuf:"bytes,1,opt,name=order_uuid,json=orderUuid,proto3" json:"order_uuid,omitempty"`
-	// Метод оплаты заказа
-	PaymentMethod PaymentMethod `protobuf:"varint,2,opt,name=payment_method,json=paymentMethod,proto3,enum=payment.v1.PaymentMethod" json:"payment_method,omitempty"`
+	OrderUuid     string `protobuf:"bytes,1,opt,name=order_uuid,json=orderUuid,proto3" json:"order_uuid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -129,13 +66,6 @@ func (x *PayOrderRequest) GetOrderUuid() string {
 		return x.OrderUuid
 	}
 	return ""
-}
-
-func (x *PayOrderRequest) GetPaymentMethod() PaymentMethod {
-	if x != nil {
-		return x.PaymentMethod
-	}
-	return PaymentMethod_PAYMENT_METHOD_UNSPECIFIED
 }
 
 type PayOrderResponse struct {
@@ -188,21 +118,14 @@ var File_payment_v1_payment_proto protoreflect.FileDescriptor
 const file_payment_v1_payment_proto_rawDesc = "" +
 	"\n" +
 	"\x18payment/v1/payment.proto\x12\n" +
-	"payment.v1\x1a\x1cgoogle/api/annotations.proto\"r\n" +
+	"payment.v1\x1a\x1cgoogle/api/annotations.proto\"0\n" +
 	"\x0fPayOrderRequest\x12\x1d\n" +
 	"\n" +
-	"order_uuid\x18\x01 \x01(\tR\torderUuid\x12@\n" +
-	"\x0epayment_method\x18\x02 \x01(\x0e2\x19.payment.v1.PaymentMethodR\rpaymentMethod\"=\n" +
+	"order_uuid\x18\x01 \x01(\tR\torderUuid\"=\n" +
 	"\x10PayOrderResponse\x12)\n" +
-	"\x10transaction_uuid\x18\x01 \x01(\tR\x0ftransactionUuid*\xa3\x01\n" +
-	"\rPaymentMethod\x12\x1e\n" +
-	"\x1aPAYMENT_METHOD_UNSPECIFIED\x10\x00\x12\x17\n" +
-	"\x13PAYMENT_METHOD_CARD\x10\x01\x12\x16\n" +
-	"\x12PAYMENT_METHOD_SBP\x10\x02\x12\x1e\n" +
-	"\x1aPAYMENT_METHOD_CREDIT_CARD\x10\x03\x12!\n" +
-	"\x1dPAYMENT_METHOD_INVESTOR_MONEY\x10\x042\x86\x01\n" +
+	"\x10transaction_uuid\x18\x01 \x01(\tR\x0ftransactionUuid2\x86\x01\n" +
 	"\x0ePaymentService\x12t\n" +
-	"\bPayOrder\x12\x1b.payment.v1.PayOrderRequest\x1a\x1c.payment.v1.PayOrderResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/payment/order/{order_uuid}B^Z\\github.com/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1;paymentv1b\x06proto3"
+	"\bPayOrder\x12\x1b.payment.v1.PayOrderRequest\x1a\x1c.payment.v1.PayOrderResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/payment/order/{order_uuid}BlZjgithub.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1;paymentv1b\x06proto3"
 
 var (
 	file_payment_v1_payment_proto_rawDescOnce sync.Once
@@ -216,22 +139,19 @@ func file_payment_v1_payment_proto_rawDescGZIP() []byte {
 	return file_payment_v1_payment_proto_rawDescData
 }
 
-var file_payment_v1_payment_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_payment_v1_payment_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_payment_v1_payment_proto_goTypes = []any{
-	(PaymentMethod)(0),       // 0: payment.v1.PaymentMethod
-	(*PayOrderRequest)(nil),  // 1: payment.v1.PayOrderRequest
-	(*PayOrderResponse)(nil), // 2: payment.v1.PayOrderResponse
+	(*PayOrderRequest)(nil),  // 0: payment.v1.PayOrderRequest
+	(*PayOrderResponse)(nil), // 1: payment.v1.PayOrderResponse
 }
 var file_payment_v1_payment_proto_depIdxs = []int32{
-	0, // 0: payment.v1.PayOrderRequest.payment_method:type_name -> payment.v1.PaymentMethod
-	1, // 1: payment.v1.PaymentService.PayOrder:input_type -> payment.v1.PayOrderRequest
-	2, // 2: payment.v1.PaymentService.PayOrder:output_type -> payment.v1.PayOrderResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 0: payment.v1.PaymentService.PayOrder:input_type -> payment.v1.PayOrderRequest
+	1, // 1: payment.v1.PaymentService.PayOrder:output_type -> payment.v1.PayOrderResponse
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_payment_v1_payment_proto_init() }
@@ -244,14 +164,13 @@ func file_payment_v1_payment_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_payment_v1_payment_proto_rawDesc), len(file_payment_v1_payment_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_payment_v1_payment_proto_goTypes,
 		DependencyIndexes: file_payment_v1_payment_proto_depIdxs,
-		EnumInfos:         file_payment_v1_payment_proto_enumTypes,
 		MessageInfos:      file_payment_v1_payment_proto_msgTypes,
 	}.Build()
 	File_payment_v1_payment_proto = out.File

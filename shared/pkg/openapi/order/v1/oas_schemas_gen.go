@@ -170,69 +170,6 @@ type GetOrderNotFound Error
 
 func (*GetOrderNotFound) getOrderRes() {}
 
-// NewOptNilPaymentMethod returns new OptNilPaymentMethod with value set to v.
-func NewOptNilPaymentMethod(v PaymentMethod) OptNilPaymentMethod {
-	return OptNilPaymentMethod{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptNilPaymentMethod is optional nullable PaymentMethod.
-type OptNilPaymentMethod struct {
-	Value PaymentMethod
-	Set   bool
-	Null  bool
-}
-
-// IsSet returns true if OptNilPaymentMethod was set.
-func (o OptNilPaymentMethod) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptNilPaymentMethod) Reset() {
-	var v PaymentMethod
-	o.Value = v
-	o.Set = false
-	o.Null = false
-}
-
-// SetTo sets value to v.
-func (o *OptNilPaymentMethod) SetTo(v PaymentMethod) {
-	o.Set = true
-	o.Null = false
-	o.Value = v
-}
-
-// IsNull returns true if value is Null.
-func (o OptNilPaymentMethod) IsNull() bool { return o.Null }
-
-// SetToNull sets value to null.
-func (o *OptNilPaymentMethod) SetToNull() {
-	o.Set = true
-	o.Null = true
-	var v PaymentMethod
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptNilPaymentMethod) Get() (v PaymentMethod, ok bool) {
-	if o.Null {
-		return v, false
-	}
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptNilPaymentMethod) Or(d PaymentMethod) PaymentMethod {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptNilUUID returns new OptNilUUID with value set to v.
 func NewOptNilUUID(v uuid.UUID) OptNilUUID {
 	return OptNilUUID{
@@ -311,10 +248,8 @@ type OrderDto struct {
 	// Итоговая стоимость в копейках.
 	TotalPrice int64 `json:"total_price"`
 	// UUID транзакции (после оплаты, v4).
-	TransactionUUID OptNilUUID `json:"transaction_uuid"`
-	// Способ оплаты (после оплаты).
-	PaymentMethod OptNilPaymentMethod `json:"payment_method"`
-	Status        OrderStatus         `json:"status"`
+	TransactionUUID OptNilUUID  `json:"transaction_uuid"`
+	Status          OrderStatus `json:"status"`
 	// Дата создания заказа.
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -352,11 +287,6 @@ func (s *OrderDto) GetTotalPrice() int64 {
 // GetTransactionUUID returns the value of TransactionUUID.
 func (s *OrderDto) GetTransactionUUID() OptNilUUID {
 	return s.TransactionUUID
-}
-
-// GetPaymentMethod returns the value of PaymentMethod.
-func (s *OrderDto) GetPaymentMethod() OptNilPaymentMethod {
-	return s.PaymentMethod
 }
 
 // GetStatus returns the value of Status.
@@ -402,11 +332,6 @@ func (s *OrderDto) SetTotalPrice(val int64) {
 // SetTransactionUUID sets the value of TransactionUUID.
 func (s *OrderDto) SetTransactionUUID(val OptNilUUID) {
 	s.TransactionUUID = val
-}
-
-// SetPaymentMethod sets the value of PaymentMethod.
-func (s *OrderDto) SetPaymentMethod(val OptNilPaymentMethod) {
-	s.PaymentMethod = val
 }
 
 // SetStatus sets the value of Status.
@@ -488,21 +413,6 @@ type PayOrderNotFound Error
 func (*PayOrderNotFound) payOrderRes() {}
 
 // Ref: #
-type PayOrderRequest struct {
-	PaymentMethod PaymentMethod `json:"payment_method"`
-}
-
-// GetPaymentMethod returns the value of PaymentMethod.
-func (s *PayOrderRequest) GetPaymentMethod() PaymentMethod {
-	return s.PaymentMethod
-}
-
-// SetPaymentMethod sets the value of PaymentMethod.
-func (s *PayOrderRequest) SetPaymentMethod(val PaymentMethod) {
-	s.PaymentMethod = val
-}
-
-// Ref: #
 type PayOrderResponse struct {
 	// UUID транзакции оплаты (v4).
 	TransactionUUID uuid.UUID `json:"transaction_uuid"`
@@ -519,60 +429,3 @@ func (s *PayOrderResponse) SetTransactionUUID(val uuid.UUID) {
 }
 
 func (*PayOrderResponse) payOrderRes() {}
-
-// Способ оплаты.
-// Ref: #
-type PaymentMethod string
-
-const (
-	PaymentMethodCARD          PaymentMethod = "CARD"
-	PaymentMethodSBP           PaymentMethod = "SBP"
-	PaymentMethodCREDITCARD    PaymentMethod = "CREDIT_CARD"
-	PaymentMethodINVESTORMONEY PaymentMethod = "INVESTOR_MONEY"
-)
-
-// AllValues returns all PaymentMethod values.
-func (PaymentMethod) AllValues() []PaymentMethod {
-	return []PaymentMethod{
-		PaymentMethodCARD,
-		PaymentMethodSBP,
-		PaymentMethodCREDITCARD,
-		PaymentMethodINVESTORMONEY,
-	}
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (s PaymentMethod) MarshalText() ([]byte, error) {
-	switch s {
-	case PaymentMethodCARD:
-		return []byte(s), nil
-	case PaymentMethodSBP:
-		return []byte(s), nil
-	case PaymentMethodCREDITCARD:
-		return []byte(s), nil
-	case PaymentMethodINVESTORMONEY:
-		return []byte(s), nil
-	default:
-		return nil, errors.Errorf("invalid value: %q", s)
-	}
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *PaymentMethod) UnmarshalText(data []byte) error {
-	switch PaymentMethod(data) {
-	case PaymentMethodCARD:
-		*s = PaymentMethodCARD
-		return nil
-	case PaymentMethodSBP:
-		*s = PaymentMethodSBP
-		return nil
-	case PaymentMethodCREDITCARD:
-		*s = PaymentMethodCREDITCARD
-		return nil
-	case PaymentMethodINVESTORMONEY:
-		*s = PaymentMethodINVESTORMONEY
-		return nil
-	default:
-		return errors.Errorf("invalid value: %q", data)
-	}
-}

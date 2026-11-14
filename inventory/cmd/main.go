@@ -17,6 +17,8 @@ import (
 	interceptor "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/interceptors"
 	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -35,11 +37,27 @@ const (
 )
 
 func main() {
+	ctx := context.Background()
 	lis, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
 		slog.Error("не удалось создать listener", "error", err)
 		os.Exit(1)
 	}
+
+	_ = godotenv.Load("../inventory.env")
+	DSN := os.Getenv("DB_URI")
+	pool, err := pgxpool.New(ctx, DSN)
+	if err != nil {
+		slog.Error("не удалось создать пул подключений к БД", "error", err)
+		os.Exit(1)
+	}
+	err = pool.Ping(ctx)
+	if err != nil {
+		slog.Error("проверка соединения с БД", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("подключение к PostgreSQL установлено")
 
 	grpcServer := grpc.NewServer(
 		grpc.KeepaliveParams(keepalive.ServerParameters{
@@ -58,7 +76,7 @@ func main() {
 			interceptor.Recover(),
 		),
 	)
-	repo := inventoryRepo.NewPartStore()
+	repo := inventoryRepo.New(pool)
 	service := inventoryService.NewService(repo)
 	api := inventoryApi.NewApi(service)
 

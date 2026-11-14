@@ -6,6 +6,7 @@ import (
 
 	errs "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/errors"
 	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/model"
+	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 )
 
@@ -17,7 +18,10 @@ func (s *Service) Get(ctx context.Context, id string) (*model.Part, error) {
 	}
 	part, err := s.repository.Get(ctx, partUUID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, errs.ErrPartsNotFound) {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%s %w", op, err)
 	}
 	return part, nil
 

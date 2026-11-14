@@ -1,19 +1,18 @@
 package transaction
 
 import (
-	"sync"
-
-	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/internal/repository/record"
-	"github.com/google/uuid"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type repository struct {
-	mu      sync.RWMutex
-	txStore map[uuid.UUID]record.Transaction
+	pool   *pgxpool.Pool
+	getter *trmpgx.CtxGetter
 }
 
-func New() *repository {
+func New(pool *pgxpool.Pool) *repository {
 	return &repository{
-		txStore: make(map[uuid.UUID]record.Transaction),
+		pool:   pool,
+		getter: trmpgx.DefaultCtxGetter,
 	}
 }

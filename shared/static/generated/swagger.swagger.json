@@ -148,12 +148,6 @@
   "definitions": {
     "PaymentServicePayOrderBody": {
       "type": "object",
-      "properties": {
-        "payment_method": {
-          "$ref": "#/definitions/v1PaymentMethod",
-          "title": "Метод оплаты заказа"
-        }
-      },
       "title": "Запрос на оплату заказа"
     },
     "protobufAny": {
@@ -264,19 +258,6 @@
           "title": "UUID транзакции оплаты"
         }
       }
-    },
-    "v1PaymentMethod": {
-      "type": "string",
-      "enum": [
-        "PAYMENT_METHOD_UNSPECIFIED",
-        "PAYMENT_METHOD_CARD",
-        "PAYMENT_METHOD_SBP",
-        "PAYMENT_METHOD_CREDIT_CARD",
-        "PAYMENT_METHOD_INVESTOR_MONEY"
-      ],
-      "default": "PAYMENT_METHOD_UNSPECIFIED",
-      "description": "- PAYMENT_METHOD_UNSPECIFIED: Не указан\n - PAYMENT_METHOD_CARD: Банковская карта\n - PAYMENT_METHOD_SBP: Система быстрых платежей\n - PAYMENT_METHOD_CREDIT_CARD: Кредитная карта\n - PAYMENT_METHOD_INVESTOR_MONEY: Деньги инвестора",
-      "title": "Способ оплаты"
     }
   }
 }

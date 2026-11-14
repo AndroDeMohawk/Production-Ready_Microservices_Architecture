@@ -10,11 +10,14 @@ import (
 
 func (r *repository) Create(ctx context.Context, tx *model.Transaction) error {
 	recordTx := converter.ModelToRecord(tx)
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if _, exist := r.txStore[tx.OrderUUID]; exist {
-		return errs.ErrDuplicatePayOrder
+	querier := r.getter.DefaultTrOrDB(ctx, r.pool)
+	const queryInsert = `INSERT INTO transactions (uuid,order_uuid,status,created_at,updated_at) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (uuid) DO NOTHING`
+	tag, err := querier.Exec(ctx, queryInsert, recordTx.TransactionUUID, recordTx.OrderUUID, recordTx.Status, recordTx.CreatedAt, recordTx.UpdatedAt)
+	if err != nil {
+		return err
 	}
-	r.txStore[tx.OrderUUID] = *recordTx
+	if tag.RowsAffected() == 0 {
+		return errs.ErrTransactionNotFound
+	}
 	return nil
 }

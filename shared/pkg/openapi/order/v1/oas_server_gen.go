@@ -33,7 +33,7 @@ type Handler interface {
 	// Проводит оплату заказа.
 	//
 	// POST /api/v1/orders/{order_uuid}/pay
-	PayOrder(ctx context.Context, req *PayOrderRequest, params PayOrderParams) (PayOrderRes, error)
+	PayOrder(ctx context.Context, params PayOrderParams) (PayOrderRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and

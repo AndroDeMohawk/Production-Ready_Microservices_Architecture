@@ -8,12 +8,14 @@ type orderService struct {
 	repository      Repository
 	inventoryClient InventoryClient
 	paymentClient   PaymentClient
+	txManager       TxManager
 }
 
-func NewService(repository Repository, inventoryClient InventoryClient, paymentClient PaymentClient) *orderService {
+func NewService(repository Repository, inventoryClient InventoryClient, paymentClient PaymentClient, txManager TxManager) *orderService {
 	return &orderService{
 		repository:      repository,
 		inventoryClient: inventoryClient,
 		paymentClient:   paymentClient,
+		txManager:       txManager,
 	}
 }

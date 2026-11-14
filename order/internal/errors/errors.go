@@ -6,15 +6,15 @@ import (
 
 var (
 	// Ошибки заказов
-	ErrOrderNotFound    = errors.New("заказ не найден")
-	ErrOrderAlreadyPaid = errors.New("заказ уже оплачен")
-	ErrOrderCancelled   = errors.New("заказ отменён")
+	ErrOrderNotFound       = errors.New("заказ не найден")
+	ErrOrderAlreadyPaid    = errors.New("заказ уже оплачен")
+	ErrOrderCancelled      = errors.New("заказ отменён")
+	ErrStatusOrderConflict = errors.New("конфликт статусов заказа")
 
 	// Ошибки деталей
 	ErrPartNotFound = errors.New("деталь не найдена")
 	ErrOutOfStock   = errors.New("деталь отсутствует на складе")
 
 	// Ошибки валидации
-	ErrInvalidUUID          = errors.New("неверный формат UUID")
-	ErrInvalidPaymentMethod = errors.New("неверный метод оплаты")
+	ErrInvalidUUID = errors.New("неверный формат UUID")
 )

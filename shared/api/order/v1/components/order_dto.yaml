@@ -45,11 +45,6 @@ properties:
     nullable: true
     description: UUID транзакции (после оплаты, v4)
     example: null
-  payment_method:
-    nullable: true
-    description: Способ оплаты (после оплаты)
-    allOf:
-      - $ref: './enums/payment_method.yaml'
   status:
     $ref: './enums/order_status.yaml'
   created_at:

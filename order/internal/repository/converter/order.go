@@ -6,45 +6,70 @@ import (
 )
 
 func ModelToRecord(order *model.Order) record.Order {
-	var paymentMethodPtr *record.PaymentMethod
-	if order.PaymentMethod != nil {
-		paymentMethodPtr = new(record.PaymentMethod)
-		*paymentMethodPtr = record.PaymentMethod(*order.PaymentMethod)
-	}
 	return record.Order{
-		OrderUUID:       order.OrderUUID,
-		HullUUID:        order.Parts.HullUUID,
-		EngineUUID:      order.Parts.EngineUUID,
-		ShieldUUID:      order.Parts.ShieldUUID,
-		WeaponUUID:      order.Parts.WeaponUUID,
+		OrderUUID: order.OrderUUID,
+		Hull: record.Part{
+			PartUUID:   order.Parts.Hull.UUID,
+			PartType:   record.PartTypeHull,
+			TotalPrice: order.Parts.Hull.Price,
+		},
+		Engine: record.Part{
+			PartUUID:   order.Parts.Engine.UUID,
+			PartType:   record.PartTypeEngine,
+			TotalPrice: order.Parts.Engine.Price,
+		},
+		Shield: &record.Part{
+			PartUUID:   order.Parts.Shield.UUID,
+			PartType:   record.PartTypeShield,
+			TotalPrice: order.Parts.Shield.Price,
+		},
+		Weapon: &record.Part{
+			PartUUID:   order.Parts.Weapon.UUID,
+			PartType:   record.PartTypeWeapon,
+			TotalPrice: order.Parts.Weapon.Price,
+		},
 		TotalPrice:      order.TotalPrice,
 		TransactionUUID: order.TransactionUUID,
-		PaymentMethod:   paymentMethodPtr,
 		Status:          record.OrderStatus(order.Status),
 		CreatedAt:       order.CreatedAt,
-		CanceledAt:      order.CanceledAt,
+		UpdatedAt:       order.UpdatedAt,
 	}
 }
 
 func RecordToModel(order *record.Order) model.Order {
-	var paymentMethodPtr *model.PaymentMethod
-	if order.PaymentMethod != nil {
-		paymentMethodPtr = new(model.PaymentMethod)
-		*paymentMethodPtr = model.PaymentMethod(*order.PaymentMethod)
-	}
-	return model.Order{
+	result := model.Order{
 		OrderUUID: order.OrderUUID,
 		Parts: model.Parts{
-			HullUUID:   order.HullUUID,
-			EngineUUID: order.EngineUUID,
-			ShieldUUID: order.ShieldUUID,
-			WeaponUUID: order.WeaponUUID,
+			Hull: model.OrderPart{
+				UUID:  order.Hull.PartUUID,
+				Type:  model.PART_TYPE_HULL,
+				Price: order.Hull.TotalPrice,
+			},
+			Engine: model.OrderPart{
+				UUID:  order.Engine.PartUUID,
+				Type:  model.PART_TYPE_ENGINE,
+				Price: order.Engine.TotalPrice,
+			},
 		},
 		TotalPrice:      order.TotalPrice,
 		TransactionUUID: order.TransactionUUID,
-		PaymentMethod:   paymentMethodPtr,
 		Status:          model.OrderStatus(order.Status),
 		CreatedAt:       order.CreatedAt,
-		CanceledAt:      order.CanceledAt,
+		UpdatedAt:       order.UpdatedAt,
 	}
+	if order.Shield != nil {
+		result.Parts.Shield = &model.OrderPart{
+			UUID:  order.Shield.PartUUID,
+			Type:  model.PART_TYPE_SHIELD,
+			Price: order.Shield.TotalPrice,
+		}
+	}
+	if order.Weapon != nil {
+		result.Parts.Weapon = &model.OrderPart{
+			UUID:  order.Weapon.PartUUID,
+			Type:  model.PART_TYPE_WEAPON,
+			Price: order.Weapon.TotalPrice,
+		}
+	}
+	return result
 }

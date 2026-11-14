@@ -21,27 +21,30 @@ type Order struct {
 	Parts           Parts
 	TotalPrice      int64 // в копейках
 	TransactionUUID *uuid.UUID
-	PaymentMethod   *PaymentMethod
 	Status          OrderStatus
 	CreatedAt       time.Time
-	CanceledAt      *time.Time
+	UpdatedAt       *time.Time
 }
-
+type OrderPart struct {
+	UUID  uuid.UUID
+	Type  PartType
+	Price int64
+}
 type Parts struct {
-	HullUUID   uuid.UUID
-	EngineUUID uuid.UUID
-	ShieldUUID *uuid.UUID // опциональный
-	WeaponUUID *uuid.UUID // опциональный
+	Hull   OrderPart
+	Engine OrderPart
+	Shield *OrderPart // опциональный
+	Weapon *OrderPart // опциональный
 }
 
 type CreateOrder struct {
 	// UUID корпуса (обязательный, v4).
-	HullUUID uuid.UUID
+	Hull OrderPart
 	// UUID двигателя (обязательный, v4).
-	EngineUUID uuid.UUID
+	Engine OrderPart
 	// UUID щита (опциональный).
-	ShieldUUID *uuid.UUID
+	Shield *OrderPart
 	// UUID вооружения (опциональный).
-	WeaponUUID *uuid.UUID
+	Weapon     *OrderPart
 	TotalPrice int64
 }

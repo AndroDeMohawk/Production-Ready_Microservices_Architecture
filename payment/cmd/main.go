@@ -16,6 +16,8 @@ import (
 	paymentService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/internal/service/transaction"
 	interceptor "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/interceptors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -36,11 +38,26 @@ const (
 )
 
 func main() {
+	ctx := context.Background()
 	lis, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
 		slog.Error("не удалось создать listener", "error", err)
 		os.Exit(1)
 	}
+	_ = godotenv.Load("../payment.env")
+	DSN := os.Getenv("DB_URI")
+	pool, err := pgxpool.New(ctx, DSN)
+	if err != nil {
+		slog.Error("не удалось создать пул подключений к БД", "error", err)
+		os.Exit(1)
+	}
+	err = pool.Ping(ctx)
+	if err != nil {
+		slog.Error("проверка соединения с БД", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("подключение к PostgreSQL установлено")
 	grpcServer := grpc.NewServer(
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     grpcMaxConnectionIdle,
@@ -58,7 +75,7 @@ func main() {
 			interceptor.Recover(),
 		),
 	)
-	repo := paymentRepo.New()
+	repo := paymentRepo.New(pool)
 	service := paymentService.New(repo)
 	api := paymentApi.NewApi(service)
 	paymentv1.RegisterPaymentServiceServer(grpcServer, api)

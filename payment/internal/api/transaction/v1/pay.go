@@ -15,9 +15,7 @@ func (a *api) PayOrder(ctx context.Context, req *paymentv1.PayOrderRequest) (*pa
 	if req.OrderUuid == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "пустой id заказа")
 	}
-	if req.PaymentMethod == paymentv1.PaymentMethod_PAYMENT_METHOD_UNSPECIFIED {
-		return nil, status.Errorf(codes.InvalidArgument, "пустой метод оплаты заказа")
-	}
+
 	input, err := converter.PayOrderRequestToInput(req)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "ошибка парсинга id")

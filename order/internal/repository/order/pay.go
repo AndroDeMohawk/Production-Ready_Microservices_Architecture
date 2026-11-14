@@ -2,34 +2,43 @@ package order
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	errs "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/internal/errors"
 	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/internal/model"
-	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/internal/repository/record"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
-func (r *orderStore) Pay(ctx context.Context, orderID uuid.UUID, txUUID uuid.UUID, method model.PaymentMethod) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	order, exist := r.orders[orderID]
-	if !exist {
-		return errs.ErrOrderNotFound
+func (r *repository) Pay(ctx context.Context, orderID uuid.UUID, txUUID uuid.UUID) error {
+	querier := r.getter.DefaultTrOrDB(ctx, r.pool)
+	const queryGet = `SELECT status FROM orders WHERE uuid = $1`
+	var status model.OrderStatus
+	err := querier.QueryRow(ctx, queryGet, orderID).Scan(
+		&status,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errs.ErrOrderNotFound
+		}
+		return err
 	}
-
-	switch order.Status {
-	case record.OrderStatusPaid:
+	if status == model.OrderStatusPaid {
 		return errs.ErrOrderAlreadyPaid
-	case record.OrderStatusCancelled:
+	}
+	if status == model.OrderStatusCancelled {
 		return errs.ErrOrderCancelled
 	}
+	const queryUpdate = `UPDATE orders SET status = $3,transaction_uuid = $1,updated_at = $5 WHERE uuid = $2 AND status not in ($3,$4)`
+	tag, err := querier.Exec(ctx, queryUpdate, txUUID, orderID, model.OrderStatusPaid, model.OrderStatusCancelled, time.Now())
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
 
-	order.Status = record.OrderStatusPaid
-	order.TransactionUUID = &txUUID
-	paymentMethod := record.PaymentMethod(method)
-	order.PaymentMethod = &paymentMethod
-	r.orders[orderID] = order
+		return errs.ErrStatusOrderConflict
+	}
 
 	return nil
 }
