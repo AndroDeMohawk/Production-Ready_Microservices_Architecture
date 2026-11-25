@@ -21,89 +21,6 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/inventory/part/{uuid}": {
-      "get": {
-        "summary": "GetPart возвращает деталь по UUID",
-        "operationId": "InventoryService_GetPart",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPartResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "uuid",
-            "description": "UUID детали",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "InventoryService"
-        ]
-      }
-    },
-    "/api/v1/inventory/parts": {
-      "get": {
-        "summary": "ListParts возвращает список деталей корабля",
-        "operationId": "InventoryService_ListParts",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListPartsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "part_type",
-            "description": "Тип части корабля (enum)\n\n - PART_TYPE_UNSPECIFIED: Не указан\n - PART_TYPE_HULL: Корпус корабля\n - PART_TYPE_ENGINE: Двигатель\n - PART_TYPE_SHIELD: Защитный щит\n - PART_TYPE_WEAPON: Вооружение",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "PART_TYPE_UNSPECIFIED",
-              "PART_TYPE_HULL",
-              "PART_TYPE_ENGINE",
-              "PART_TYPE_SHIELD",
-              "PART_TYPE_WEAPON"
-            ],
-            "default": "PART_TYPE_UNSPECIFIED"
-          },
-          {
-            "name": "uuids",
-            "description": "Список UUID деталей корабля",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          }
-        ],
-        "tags": [
-          "InventoryService"
-        ]
-      }
-    },
     "/api/v1/payment/order/{order_uuid}": {
       "post": {
         "summary": "PayOrder обрабатывает оплату заказа",
@@ -143,6 +60,171 @@
           "PaymentService"
         ]
       }
+    },
+    "/inventory.v1.InventoryService/GetPart": {
+      "post": {
+        "summary": "GetPart возвращает деталь по UUID",
+        "operationId": "InventoryService_GetPart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPartResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetPartRequest"
+            }
+          }
+        ],
+        "tags": [
+          "InventoryService"
+        ]
+      }
+    },
+    "/inventory.v1.InventoryService/ListParts": {
+      "post": {
+        "summary": "ListParts возвращает список деталей с опциональной фильтрацией",
+        "operationId": "InventoryService_ListParts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPartsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListPartsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "InventoryService"
+        ]
+      }
+    },
+    "/inventory.v1.InventoryService/ReleaseParts": {
+      "post": {
+        "summary": "ReleaseParts освобождает ранее зарезервированные детали",
+        "operationId": "InventoryService_ReleaseParts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ReleasePartsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ReleasePartsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "InventoryService"
+        ]
+      }
+    },
+    "/inventory.v1.InventoryService/ReserveParts": {
+      "post": {
+        "summary": "ReserveParts резервирует детали для заказа",
+        "operationId": "InventoryService_ReserveParts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ReservePartsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ReservePartsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "InventoryService"
+        ]
+      }
+    },
+    "/inventory.v1.InventoryService/ValidateCompatibility": {
+      "post": {
+        "summary": "ValidateCompatibility проверяет совместимость деталей между собой",
+        "operationId": "InventoryService_ValidateCompatibility",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ValidateCompatibilityResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ValidateCompatibilityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "InventoryService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -178,14 +260,42 @@
         }
       }
     },
+    "v1GetPartRequest": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "title": "UUID детали"
+        }
+      },
+      "title": "Запрос на получение детали по UUID"
+    },
     "v1GetPartResponse": {
       "type": "object",
       "properties": {
         "part": {
           "$ref": "#/definitions/v1Part",
-          "title": "Информация о детали"
+          "title": "Найденная деталь"
         }
-      }
+      },
+      "title": "Ответ с деталью"
+    },
+    "v1ListPartsRequest": {
+      "type": "object",
+      "properties": {
+        "part_type": {
+          "$ref": "#/definitions/v1PartType",
+          "title": "Фильтр по типу детали"
+        },
+        "uuids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Фильтр по UUID"
+        }
+      },
+      "title": "Запрос на получение списка деталей"
     },
     "v1ListPartsResponse": {
       "type": "object",
@@ -196,9 +306,10 @@
             "type": "object",
             "$ref": "#/definitions/v1Part"
           },
-          "title": "Список деталей корабля"
+          "title": "Список деталей"
         }
-      }
+      },
+      "title": "Ответ со списком деталей"
     },
     "v1Part": {
       "type": "object",
@@ -222,7 +333,7 @@
         },
         "part_type": {
           "$ref": "#/definitions/v1PartType",
-          "title": "Тип детали (enum)"
+          "title": "Тип детали"
         },
         "stock_quantity": {
           "type": "string",
@@ -247,7 +358,7 @@
         "PART_TYPE_WEAPON"
       ],
       "default": "PART_TYPE_UNSPECIFIED",
-      "description": "- PART_TYPE_UNSPECIFIED: Не указан\n - PART_TYPE_HULL: Корпус корабля\n - PART_TYPE_ENGINE: Двигатель\n - PART_TYPE_SHIELD: Защитный щит\n - PART_TYPE_WEAPON: Вооружение",
+      "description": "- PART_TYPE_UNSPECIFIED: Не указан\n - PART_TYPE_HULL: Корпус\n - PART_TYPE_ENGINE: Двигатель\n - PART_TYPE_SHIELD: Щит\n - PART_TYPE_WEAPON: Оружие",
       "title": "Тип детали"
     },
     "v1PayOrderResponse": {
@@ -258,6 +369,66 @@
           "title": "UUID транзакции оплаты"
         }
       }
+    },
+    "v1ReleasePartsRequest": {
+      "type": "object",
+      "properties": {
+        "uuids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "UUID деталей для освобождения"
+        }
+      },
+      "title": "Запрос на освобождение ранее зарезервированных деталей"
+    },
+    "v1ReleasePartsResponse": {
+      "type": "object",
+      "title": "Ответ на освобождение (пустой — значит успешно)"
+    },
+    "v1ReservePartsRequest": {
+      "type": "object",
+      "properties": {
+        "uuids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "UUID деталей для резервирования"
+        }
+      },
+      "title": "Запрос на резервирование деталей"
+    },
+    "v1ReservePartsResponse": {
+      "type": "object",
+      "title": "Ответ на резервирование (пустой — значит успешно)"
+    },
+    "v1ValidateCompatibilityRequest": {
+      "type": "object",
+      "properties": {
+        "hull_uuid": {
+          "type": "string",
+          "title": "UUID детали в слоте корпуса (обязательный слот)"
+        },
+        "engine_uuid": {
+          "type": "string",
+          "title": "UUID детали в слоте двигателя (обязательный слот)"
+        },
+        "shield_uuid": {
+          "type": "string",
+          "title": "UUID детали в слоте щита (опциональный слот, пустая строка — слот не используется)"
+        },
+        "weapon_uuid": {
+          "type": "string",
+          "title": "UUID детали в слоте оружия (опциональный слот, пустая строка — слот не используется)"
+        }
+      },
+      "title": "Запрос на проверку совместимости деталей по слотам корабля"
+    },
+    "v1ValidateCompatibilityResponse": {
+      "type": "object",
+      "title": "Ответ на проверку совместимости (пустой — значит совместимы)"
     }
   }
 }

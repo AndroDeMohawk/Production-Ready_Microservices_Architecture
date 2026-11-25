@@ -2,133 +2,13 @@ package main
 
 import (
 	"context"
-	"errors"
-	"log/slog"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
-	inventoryApi "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/api/inventory/v1"
-	inventoryRepo "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/repository/part"
-	inventoryService "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/service/part"
-	interceptor "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/interceptors"
-	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/app"
 	"github.com/joho/godotenv"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/reflection"
-)
-
-const (
-	grpcAddress               = ":50051"
-	grpcGatewayAddress        = ":40041"
-	grpcMaxConnectionIdle     = 15 * time.Minute
-	grpcMaxConnectionAge      = 30 * time.Minute
-	grpcMaxConnectionAgeGrace = 5 * time.Second
-	grpcKeepaliveTime         = 5 * time.Minute
-	grpcKeepaliveTimeout      = 1 * time.Second
-	grpcMinPingInterval       = 5 * time.Minute
 )
 
 func main() {
-	ctx := context.Background()
-	lis, err := net.Listen("tcp", grpcAddress)
-	if err != nil {
-		slog.Error("не удалось создать listener", "error", err)
-		os.Exit(1)
-	}
-
-	_ = godotenv.Load("../inventory.env")
-	DSN := os.Getenv("DB_URI")
-	pool, err := pgxpool.New(ctx, DSN)
-	if err != nil {
-		slog.Error("не удалось создать пул подключений к БД", "error", err)
-		os.Exit(1)
-	}
-	err = pool.Ping(ctx)
-	if err != nil {
-		slog.Error("проверка соединения с БД", "error", err)
-		os.Exit(1)
-	}
-
-	slog.Info("подключение к PostgreSQL установлено")
-
-	grpcServer := grpc.NewServer(
-		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionIdle:     grpcMaxConnectionIdle,
-			MaxConnectionAge:      grpcMaxConnectionAge,
-			MaxConnectionAgeGrace: grpcMaxConnectionAgeGrace,
-			Time:                  grpcKeepaliveTime,
-			Timeout:               grpcKeepaliveTimeout,
-		}),
-		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-			MinTime:             grpcMinPingInterval,
-			PermitWithoutStream: true,
-		}),
-		grpc.ChainUnaryInterceptor(
-			interceptor.Logger(),
-			interceptor.Recover(),
-		),
-	)
-	repo := inventoryRepo.New(pool)
-	service := inventoryService.NewService(repo)
-	api := inventoryApi.NewApi(service)
-
-	inventoryv1.RegisterInventoryServiceServer(grpcServer, api)
-	reflection.Register(grpcServer)
-
-	slog.Info("запуск InventoryService", "адрес", grpcAddress)
-
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			slog.Error("ошибка запуска сервера", "error", err)
-			os.Exit(1)
-		}
-	}()
-	gwContext, gwCancel := context.WithCancel(context.Background())
-	defer gwCancel()
-	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err = inventoryv1.RegisterInventoryServiceHandlerFromEndpoint(
-		gwContext,
-		mux,
-		grpcAddress,
-		opts,
-	)
-	if err != nil {
-		slog.Error("ошибка регистрации inventory gRPC gateway", "error", err)
-		gwCancel()
-		return
-	}
-	httpServer := &http.Server{
-		Addr:    grpcGatewayAddress,
-		Handler: mux,
-	}
-	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-			slog.Error("ошибка запуска inventory HTTP-Gateway", "error", err)
-			os.Exit(1)
-		}
-	}()
-
-	<-ctx.Done()
-	slog.Info("Остановка gRPC сервера")
-	grpcServer.GracefulStop()
-	slog.Info("Сервер успешно остановлен")
-
-	shutdownCtx, stop := context.WithTimeout(context.Background(), 5*time.Second)
-	defer stop()
-	if error := httpServer.Shutdown(shutdownCtx); error != nil {
-		slog.Error("ошибка остановки inventory HTTP-Gateway", "error", error)
-	}
-	slog.Info("inventory HTTP-Gateway остановлен")
+	_ = godotenv.Load("./../inventory.env")
+	a := app.New(context.Background())
+	a.Run()
 }

@@ -15,11 +15,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	invApp "github.com/student/inventory/pkg/app"
-	"github.com/student/order/pkg/app"
-	payApp "github.com/student/payment/pkg/app"
-	inventoryv1 "github.com/student/shared/pkg/proto/inventory/v1"
-	paymentv1 "github.com/student/shared/pkg/proto/payment/v1"
+	invApp "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/pkg/app"
+	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/order/pkg/app"
+	payApp "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/payment/pkg/app"
+	inventoryv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/inventory/v1"
+	paymentv1 "github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/shared/pkg/proto/payment/v1"
 )
 
 const bufSize = 1024 * 1024
@@ -43,6 +43,8 @@ type Env struct {
 }
 
 // NewEnv поднимает окружение для одного теста и регистрирует cleanup.
+// Поднимаются: уникальные БД для order и inventory, миграции, gRPC inventory+payment
+// через bufconn, HTTP order через httptest.
 func NewEnv(t *testing.T) *Env {
 	t.Helper()
 

@@ -10,7 +10,6 @@ import (
 	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/repository/converter"
 	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/repository/record"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (r *repository) List(ctx context.Context, uuids []uuid.UUID) ([]*model.Part, error) {
@@ -21,7 +20,6 @@ func (r *repository) List(ctx context.Context, uuids []uuid.UUID) ([]*model.Part
 		var part record.Part
 		var partType string
 		var createdAt time.Time
-		var updatedAt *time.Time
 
 		err := querier.QueryRow(ctx, query, id).Scan(
 			&part.UUID,
@@ -31,21 +29,18 @@ func (r *repository) List(ctx context.Context, uuids []uuid.UUID) ([]*model.Part
 			&part.Price,
 			&part.StockQuantity,
 			&createdAt,
-			&updatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
-		part.PartType = record.PartTypeFromString(strings.ToUpper(partType))
-		part.CreatedAt = timestamppb.New(createdAt)
-		if updatedAt != nil {
-			part.UpdatedAt = timestamppb.New(*updatedAt)
-		}
+		part.PartType = strings.ToUpper(partType)
+		part.CreatedAt = createdAt
+
 		convPart, err := converter.RecordToModel(&part)
 		if err != nil {
 			continue
 		}
-		parts = append(parts, convPart)
+		parts = append(parts, &convPart)
 	}
 	if len(parts) < len(uuids) {
 		return nil, errs.ErrPartsNotFound

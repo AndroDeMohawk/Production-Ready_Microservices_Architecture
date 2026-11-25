@@ -6,4 +6,5 @@ use (
 	./payment
 	./shared
 	./docs-server
+	./platform
 )

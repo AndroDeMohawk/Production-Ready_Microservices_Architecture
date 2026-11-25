@@ -11,7 +11,6 @@ import (
 	"github.com/AndroDeMohawk/Production-Ready_Microservices_Architecture/inventory/internal/repository/record"
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (r *repository) Get(ctx context.Context, id uuid.UUID) (*model.Part, error) {
@@ -20,7 +19,6 @@ func (r *repository) Get(ctx context.Context, id uuid.UUID) (*model.Part, error)
 	var part record.Part
 	var partType string
 	var createdAt time.Time
-	var updatedAt *time.Time
 	err := querier.QueryRow(ctx, query, id).Scan(
 		&part.UUID,
 		&part.Name,
@@ -29,7 +27,6 @@ func (r *repository) Get(ctx context.Context, id uuid.UUID) (*model.Part, error)
 		&part.Price,
 		&part.StockQuantity,
 		&createdAt,
-		&updatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, errs.ErrPartNotFoundInDB) {
@@ -37,15 +34,13 @@ func (r *repository) Get(ctx context.Context, id uuid.UUID) (*model.Part, error)
 		}
 		return nil, err
 	}
-	part.PartType = record.PartTypeFromString(strings.ToUpper(partType))
-	part.CreatedAt = timestamppb.New(createdAt)
-	if updatedAt != nil {
-		part.UpdatedAt = timestamppb.New(*updatedAt)
-	}
+	part.PartType = strings.ToUpper(partType)
+	part.CreatedAt = createdAt
+
 	mPart, err := converter.RecordToModel(&part)
 	if err != nil {
 		return nil, errs.ErrParsingUUID
 	}
-	return mPart, nil
+	return &mPart, nil
 
 }

@@ -1,0 +1,12 @@
+pg:
+  database: payment-service
+  user: postgres
+  password: 123
+  port: 5434
+  sslmode: disable
+grpc:
+  port: 50052
+  addr: localhost
+  gw_addr: 40042
+logger:
+  level: debug

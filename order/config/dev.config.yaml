@@ -1,0 +1,17 @@
+pg:
+  database: order-service
+  user: postgres
+  password: 123
+  port: 5432
+  sslmode: disable
+order_http:
+  port: 8080
+  addr: localhost
+payment_grpc:
+  port: 50052
+  addr: localhost
+inventory_grpc:
+  port: 50051
+  addr: localhost
+logger:
+  level: debug

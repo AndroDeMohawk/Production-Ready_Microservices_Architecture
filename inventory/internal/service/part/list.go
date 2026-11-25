@@ -27,8 +27,8 @@ func (s *Service) List(ctx context.Context, in input.ListPartsInput) ([]*model.P
 		selectedType := in.PartType
 
 		sort.SliceStable(parts, func(i, j int) bool {
-			iSelected := parts[i].PartType == selectedType
-			jSelected := parts[j].PartType == selectedType
+			iSelected := parts[i].PartType() == selectedType
+			jSelected := parts[j].PartType() == selectedType
 
 			return iSelected && !jSelected
 		})

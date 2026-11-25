@@ -1,0 +1,6 @@
+pg:
+  db_name: order-service
+  db_user: postgres
+  db_password: 123
+  db_port: 5432
+  sslmode: disable

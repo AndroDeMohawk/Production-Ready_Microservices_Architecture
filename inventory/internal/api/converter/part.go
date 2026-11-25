@@ -9,13 +9,13 @@ import (
 
 func ModelToProto(part *model.Part) *inventoryv1.Part {
 	return &inventoryv1.Part{
-		Uuid:          part.UUID.String(),
-		Name:          part.Name,
-		Description:   part.Description,
-		Price:         part.Price,
-		PartType:      ModelPartTypeToProtoPartType(part.PartType),
-		StockQuantity: part.StockQuantity,
-		CreatedAt:     timestamppb.New(part.CreatedAt),
+		Uuid:          part.UUID().String(),
+		Name:          part.Name(),
+		Description:   part.Description(),
+		Price:         part.Price(),
+		PartType:      ModelPartTypeToProtoPartType(part.PartType()),
+		StockQuantity: int64(part.StockQuantity()),
+		CreatedAt:     timestamppb.New(part.CreatedAt()),
 	}
 }
 

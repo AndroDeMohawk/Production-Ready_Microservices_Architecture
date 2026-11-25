@@ -1,0 +1,12 @@
+pg:
+  db_name: inventory-service
+  db_user: postgres
+  db_password: 123
+  db_port: 5433
+  sslmode: disable
+grpc:
+  port: 50051
+  addr: localhost
+  gw_addr: 40041
+logger:
+  level: debug
